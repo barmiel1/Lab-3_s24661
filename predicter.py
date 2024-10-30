@@ -1,6 +1,11 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, MinMaxScaler, LabelEncoder
+from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.model_selection import train_test_split
 
 # Wczytanie danych
 file_path = 'CollegeDistance.csv'
@@ -41,3 +46,41 @@ print("Dane zostały podzielone na zbiór treningowy i testowy.")
 # Obliczenie liczby danych w zbiorze treningowym i testowym
 print(f"Liczba danych w zbiorze treningowym: {X_train.shape[0]}")
 print(f"Liczba danych w zbiorze testowym: {X_test.shape[0]}")
+
+print("\nRozpoczyanie uczenia\n")
+
+# Lista modeli do przetestowania
+models = {
+    "Linear Regression": LinearRegression(),
+    "Random Forest": RandomForestRegressor(n_estimators=100, random_state=42),
+    "Decision Tree": DecisionTreeRegressor(random_state=42),
+    "Gradient Boosting": GradientBoostingRegressor(random_state=42)
+}
+
+# Słownik do przechowywania wyników
+results = {}
+
+# Trenowanie, przewidywanie i ocena każdego modelu
+for model_name, model in models.items():
+    # Trenowanie modelu
+    model.fit(X_train, y_train)
+
+    # Przewidywanie na zbiorze testowym
+    y_pred = model.predict(X_test)
+
+    # Obliczanie metryk
+    mse = mean_squared_error(y_test, y_pred)
+    r2 = r2_score(y_test, y_pred)
+
+    # Przechowywanie wyników
+    results[model_name] = {'MSE': mse, 'R2 Score': r2}
+
+# Wyświetlanie wyników
+results_df = pd.DataFrame(results).T
+print("Wyniki modeli:")
+print(results_df)
+
+# Wybór najlepszego modelu
+best_model_name = results_df['MSE'].idxmin()
+print(f"\nNajlepszy model: {best_model_name}")
+print(f"Metryki najlepszego modelu:\n{results_df.loc[best_model_name]}")
