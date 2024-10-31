@@ -6,9 +6,12 @@ import seaborn as sns
 file_path = 'CollegeDistance.csv'
 data = pd.read_csv(file_path)
 
-# Wyświetlenie informacji o danych
-data.info()
-print(data.describe())
+# Zapisanie informacji o danych
+with open("data_info.txt", "w+") as info_file:
+    info_file.write("Informacje o danych:\n")
+    data.info(buf=info_file)  #
+    info_file.write("\nOpis statystyczny danych:\n")
+    info_file.write(data.describe().to_string())
 
 sns.set(style="whitegrid")
 

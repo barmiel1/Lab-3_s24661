@@ -13,74 +13,91 @@ data = pd.read_csv(file_path)
 
 df = pd.DataFrame(data)
 
-# Kategoryzacja
-df_original_size = df.shape[0]
-original_columns = df.shape[1]
-categorical_columns = ['gender', 'ethnicity', 'fcollege', 'mcollege', 'home', 'urban', 'income', 'region']
+with open("preparation_result.txt", "w+") as prep_file:
+    # Kategoryzacja
+    df_original_size = df.shape[0]
+    original_columns = df.shape[1]
+    categorical_columns = ['gender', 'ethnicity', 'fcollege', 'mcollege', 'home', 'urban', 'income', 'region']
 
-df = pd.get_dummies(df, columns=categorical_columns, drop_first=True)
+    df = pd.get_dummies(df, columns=categorical_columns, drop_first=True)
 
-new_columns = df.shape[1]
-categorical_percentage = ((new_columns - original_columns) / original_columns) * 100
-print(f"Procent nowych kolumn po kategoryzacji: {categorical_percentage:.2f}%")
+    new_columns = df.shape[1]
+    categorical_percentage = ((new_columns - original_columns) / original_columns) * 100
+    print(f"Procent nowych kolumn po kategoryzacji: {categorical_percentage:.2f}%\n")
+    prep_file.write(f"Procent nowych kolumn po kategoryzacji: {categorical_percentage:.2f}%\n")
 
 
-# Standaryzacja
-numeric_cols = ['score', 'unemp', 'wage', 'distance', 'tuition', 'education']
-scaler_standard = StandardScaler()
+    # Standaryzacja
+    numeric_cols = ['score', 'unemp', 'wage', 'distance', 'tuition', 'education']
+    scaler_standard = StandardScaler()
 
-df_standardized = df.copy()
-df_standardized[numeric_cols] = scaler_standard.fit_transform(df[numeric_cols])
+    df_standardized = df.copy()
+    df_standardized[numeric_cols] = scaler_standard.fit_transform(df[numeric_cols])
 
-numerical_modified_count = len(numeric_cols) * df.shape[0]
-numerical_percentage = (numerical_modified_count / (df_original_size * len(df.columns))) * 100
-print(f"Procent danych zmodyfikowanych przez standaryzację: {numerical_percentage:.2f}%")
+    numerical_modified_count = len(numeric_cols) * df.shape[0]
+    numerical_percentage = (numerical_modified_count / (df_original_size * len(df.columns))) * 100
+    print(f"Procent danych zmodyfikowanych przez standaryzację: {numerical_percentage:.2f}%\n")
+    prep_file.write(f"Procent danych zmodyfikowanych przez standaryzację: {numerical_percentage:.2f}%\n")
 
-print("Standaryzacja i kategoryzacja zakończone.")
+    print("Standaryzacja i kategoryzacja zakończone.")
+    prep_file.write("Standaryzacja i kategoryzacja zakończone.\n\n")
 
-# Podział na zbiór treningowy i testowy
-X_train, X_test, y_train, y_test = train_test_split(df_standardized.drop(columns=['score']), df_standardized['score'], test_size=0.2, random_state=42)
+    # Podział na zbiór treningowy i testowy
+    X_train, X_test, y_train, y_test = train_test_split(df_standardized.drop(columns=['score']), df_standardized['score'], test_size=0.2, random_state=42)
 
-print("Dane zostały podzielone na zbiór treningowy i testowy.")
+    print("Dane zostały podzielone na zbiór treningowy i testowy.")
+    prep_file.write("Dane zostały podzielone na zbiór treningowy i testowy.\n")
 
-# Obliczenie liczby danych w zbiorze treningowym i testowym
-print(f"Liczba danych w zbiorze treningowym: {X_train.shape[0]}")
-print(f"Liczba danych w zbiorze testowym: {X_test.shape[0]}")
+    # Obliczenie liczby danych w zbiorze treningowym i testowym
+    print(f"Liczba danych w zbiorze treningowym: {X_train.shape[0]}")
+    print(f"Liczba danych w zbiorze testowym: {X_test.shape[0]}")
 
-print("\nRozpoczyanie uczenia\n")
+    prep_file.write(f"Liczba danych w zbiorze treningowym: {X_train.shape[0]}\n")
+    prep_file.write(f"Liczba danych w zbiorze testowym: {X_test.shape[0]}\n")
 
-# Lista modeli do przetestowania
-models = {
-    "Linear Regression": LinearRegression(),
-    "Random Forest": RandomForestRegressor(n_estimators=100, random_state=42),
-    "Decision Tree": DecisionTreeRegressor(random_state=42),
-    "Gradient Boosting": GradientBoostingRegressor(random_state=42)
-}
+with open("train_result.txt", "w+") as train_file:
 
-# Słownik do przechowywania wyników
-results = {}
+    print("\nRozpoczyanie uczenia\n")
+    train_file.write("Rozpoczyanie uczenia\n\n")
 
-# Trenowanie, przewidywanie i ocena każdego modelu
-for model_name, model in models.items():
-    # Trenowanie modelu
-    model.fit(X_train, y_train)
+    # Lista modeli do przetestowania
+    models = {
+        "Linear Regression": LinearRegression(),
+        "Random Forest": RandomForestRegressor(n_estimators=100, random_state=42),
+        "Decision Tree": DecisionTreeRegressor(random_state=42),
+        "Gradient Boosting": GradientBoostingRegressor(random_state=42)
+    }
 
-    # Przewidywanie na zbiorze testowym
-    y_pred = model.predict(X_test)
+    # Słownik do przechowywania wyników
+    results = {}
 
-    # Obliczanie metryk
-    mse = mean_squared_error(y_test, y_pred)
-    r2 = r2_score(y_test, y_pred)
+    # Trenowanie, przewidywanie i ocena każdego modelu
+    for model_name, model in models.items():
+        # Trenowanie modelu
+        model.fit(X_train, y_train)
 
-    # Przechowywanie wyników
-    results[model_name] = {'MSE': mse, 'R2 Score': r2}
+        # Przewidywanie na zbiorze testowym
+        y_pred = model.predict(X_test)
 
-# Wyświetlanie wyników
-results_df = pd.DataFrame(results).T
-print("Wyniki modeli:")
-print(results_df)
+        # Obliczanie metryk
+        mse = mean_squared_error(y_test, y_pred)
+        r2 = r2_score(y_test, y_pred)
 
-# Wybór najlepszego modelu
-best_model_name = results_df['MSE'].idxmin()
-print(f"\nNajlepszy model: {best_model_name}")
-print(f"Metryki najlepszego modelu:\n{results_df.loc[best_model_name]}")
+        # Przechowywanie wyników
+        results[model_name] = {'MSE': mse, 'R2 Score': r2}
+
+    # Wyświetlanie wyników
+    results_df = pd.DataFrame(results).T
+    print("Wyniki modeli:")
+    print(results_df)
+
+    train_file.write("Wyniki modeli:\n")
+    train_file.write(results_df.to_string()+'\n')
+
+    # Wybór najlepszego modelu
+    best_model_name = results_df['MSE'].idxmin()
+    print(f"\nNajlepszy model: {best_model_name}")
+    print(f"Metryki najlepszego modelu:\n{results_df.loc[best_model_name]}")
+
+    train_file.write(f"\nNajlepszy model: {best_model_name}\n")
+    train_file.write(f"Metryki najlepszego modelu:\n{results_df.loc[best_model_name]}\n")
