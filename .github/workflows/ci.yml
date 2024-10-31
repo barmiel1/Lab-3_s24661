@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  clean_data:
+  data_analyzer:
     runs-on: ubuntu-latest
     
     steps:
